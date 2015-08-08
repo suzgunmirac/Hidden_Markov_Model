@@ -12,6 +12,8 @@ namespace HiddenMarkovModelTrain
 
         public int numObservations; // size of the observations
 
+        public int [] data; // observation seq
+
         public double[] prior; // initial states (prior)
 
         public double[,] A; // transitionMatrix
@@ -49,14 +51,14 @@ namespace HiddenMarkovModelTrain
                 
                 for (int j = 0; j < numStates; j++)
                 {
-                   A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
-                    // A[i, j] = Math.Log((rand_generator.NextDouble()));
+                  // A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
+                   A[i, j] = Math.Log((rand_generator.NextDouble()));
                 }
 
                 for (int j = 0; j < numObservations; j++)
                 {
-                    B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
-                    // B[i, j] = Math.Log((rand_generator.NextDouble()));
+                   // B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
+                   B[i, j] = Math.Log((rand_generator.NextDouble()));
                 }
 
                  prior[i] = Math.Log(1.0 / numStates); // unifor distribution for the prior (initial state probabilities): pi  
@@ -68,14 +70,16 @@ namespace HiddenMarkovModelTrain
         /** Baum-Welch Training 
          * @param data : the training set
          **/
-        public void baumWelchTrain(int[] data)
+        public void baumWelchTrain(int [] data)
         {
+            this.data = data;
+
             time_duration = data.Length;
 
             double [,] gamma = new double [numStates, time_duration];
 
             double[,] alpha_num = new double[numStates, numStates]; // new A (transition matrix)
-            double [] alpha_denom = new double [numStates];
+            double [,] alpha_denom = new double [numStates, numStates];
 
             double[,] beta_num = new double[numStates, numObservations]; // new B (emission matrix)
             double [,] beta_denom = new double [numStates, numObservations];
@@ -85,24 +89,25 @@ namespace HiddenMarkovModelTrain
 
             //calculate the foward and backward variables on the model
 
-            fwd = forwardCalc(data);
-            bwd = backwardCalc(data);
+            fwd = forwardCalc();
+            bwd = backwardCalc();
 
-            /** RE-ESTIMATION and UPDATE **/
-            
+            #region RE-ESTIMATION
+            /**
+            // RE-ESTIMATION and UPDATE 
             // re-estimation of the prior=a0 (initial state) probabilities and UPDATE
-            
             for (int i = 0; i < numStates; i++)
             {
                 a0 [i] = totalNumberOfTransCalc (0, i);
     
-                /**
+                
                 for (int j = 0; j<numStates; j++){
                     double gamma_t_j = fwd[0, j] + bwd [0, j];
                     a0_denom [i] = log_Sum (a0_denom[i], gamma_t_j);
                     Console.WriteLine("a0_denom: " + a0_denom[i].ToString());
                 }
-                 **/
+                
+                 
 
                 // Update prior with a0:
                 // which means prior = a0;
@@ -113,7 +118,7 @@ namespace HiddenMarkovModelTrain
             
 
             // re-estimation of the the transtition prob
-            for (int t = 0; t<time_duration -2; t++){
+            for (int t = 0; t<time_duration -2; t++){ 
 
                 for (int i=0; i<numStates; i++){
                     alpha_denom[i] = double.NaN;
@@ -165,6 +170,57 @@ namespace HiddenMarkovModelTrain
                     B[j, k] = beta_num[j, k] - beta_denom[j, k];
                 }
             }
+            **/
+
+            for (int i = 0; i < numStates; i++)
+            {
+                prior [i]= gamma_Calc(0, i);
+                Console.WriteLine(prior[i].ToString());
+            }
+            
+            for (int i = 0; i < numStates; i++)
+            {
+                for (int j = 0; j < numStates; j++)
+                {
+                    alpha_num [i,j] = double.NaN;
+                    alpha_denom [i,j] = double.NaN;
+
+                    for (int t = 0; t < time_duration-1; t++)
+                    {
+                        alpha_num[i, j] = log_Sum(alpha_num[i, j], xi_Calc(t, i, j));
+                        alpha_denom[i, j] = log_Sum(alpha_denom[i, j], gamma_Calc(t, i));
+                    }
+                    A[i, j] = alpha_num[i, j] - alpha_denom[i, j];
+
+                   /* if (A[i,j] == 0)
+                        Console.WriteLine(A[i, j].ToString() + " and i,j: " + i + ", " + j );
+                    */
+                }
+            }
+
+
+            for (int j = 0; j < numStates; j++)
+            {
+                for (int k = 0; k < numObservations; k++)
+                {
+                    beta_num[j, k] = double.NaN;
+                    beta_denom[j, k] = double.NaN;
+
+                    for (int t = 0; t < time_duration; t++)
+                    {
+                        if (data[t] == k){
+                            beta_num[j,k] = log_Sum (beta_num[j,k], gamma_Calc(t, j));
+                        }
+
+                        beta_denom[j, k] = log_Sum(beta_denom[j, k], gamma_Calc(t, j));
+                    }
+
+                    B[j, k] = beta_num[j, k] - beta_denom[j, k];
+                }
+            }
+            
+            #endregion
+
 
         }
 
@@ -174,7 +230,7 @@ namespace HiddenMarkovModelTrain
          * @return an array, fwd, that contains the forward-variables
          * multi-dimens olduguna dikkat et!!! 
          **/
-        public double[,] forwardCalc(int[] data)
+        public double[,] forwardCalc()
         {
             int time_duration = data.Length;
 
@@ -227,7 +283,7 @@ namespace HiddenMarkovModelTrain
          * @ return an array, bwd, that contains the backward-variables
          * multi-dimension olduguna dikkat et
          **/
-        public double[,] backwardCalc(int[] data)
+        public double[,] backwardCalc()
         {
             int time_duration = data.Length;
 
@@ -260,13 +316,17 @@ namespace HiddenMarkovModelTrain
                         double prob = A[i, j] + B[j, data[t + 1]] + bwd[t + 1, j];
                         bwd[t, i] = log_Sum(bwd[t,i], prob);
 
-                        /**
-                        if (bwd[t, i] = 0) // For debugging purposes
+                        
+                        /*
+                         if (bwd[t, i] == 0) // For debugging purposes
                             Console.WriteLine("t and i: " + t + "," + i + " -> " + bwd[t,i].ToString());
-                         **/
+                         */
+                         
                     }
                 }
             }
+
+            // Console.WriteLine("b[0] is " + bwd[0, 0]);
 
             return bwd;
         }
@@ -280,7 +340,6 @@ namespace HiddenMarkovModelTrain
             if (double.IsNaN(p2) || double.IsInfinity(p2))
             {
                 return p1;
-
             }
             if (p1 > p2)
             {
@@ -296,15 +355,59 @@ namespace HiddenMarkovModelTrain
         {
             double total_trans_num = fwd[t, i] + bwd[t, i];
             double total_trans_denom = double.NaN;
+            for (int j = 0; j < numStates; j++)
+            {
+                total_trans_denom = log_Sum(total_trans_denom, (fwd[t, j] + bwd[t, j]));
+
+            }
+
+
+            return total_trans_num - total_trans_denom;
+        }
+
+        double xi_Calc(int t, int i, int j)
+        {
+            double numerator = fwd[t, i] + A[i, j] + B[j, data[t + 1]] + bwd [t + 1, j];
+            double denominator = double.NaN;
+
+            for (int k = 0; k < numStates; k++)
+            {
+                for (int l = 0; l < numStates; l++)
+                {
+                    denominator = log_Sum(denominator, fwd[t, k] + A[k, l] + B[l, data[t + 1]] + bwd[t + 1, l]);
+                }
+            }
+
+           // Console.WriteLine("xi t and j: " + t + " and " + j + "= " + (numerator - denominator));
+
+            return numerator - denominator;
+        }
+
+        double gamma_Calc(int t, int i)
+        {
+
+            double numerator = fwd[t, i] + bwd[t, i];
+            double denominator = double.NaN;
 
             for (int j = 0; j < numStates; j++)
             {
-               // Console.WriteLine("fwd[t,j] and bwd [t,j]: " + fwd [t, j] + " and " + bwd[t,j]);
-
-                total_trans_denom = log_Sum(total_trans_denom, (fwd[t, j] + bwd[t, j]));
+                denominator = log_Sum(denominator, (fwd[t, i] + bwd[t, i]));
             }
+            
+            // Console.WriteLine(" gamma t and i: " + t + " and " + i + " and datalength: " + time_duration);
 
-            return total_trans_num - total_trans_denom;
+            return numerator - denominator;
+        }
+
+        double prob_Obs_Seq(int[] obs_seq)
+        {
+            data = obs_seq;
+
+            fwd = forwardCalc();
+
+            int seqLength = obs_seq.Length; // time duration actually
+
+            return log_prob_forward;
         }
 
     }
