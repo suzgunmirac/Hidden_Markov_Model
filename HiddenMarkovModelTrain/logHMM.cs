@@ -9,26 +9,22 @@ namespace HiddenMarkovModelTrain
     class logHMM
     {
         public int numStates; // number of states
-
         public int numObservations; // size of the observations
 
         public int [] data; // observation seq
+        public int time_duration; // time 
 
         public double[] prior; // initial states (prior)
-
         public double[,] A; // transitionMatrix
-
         public double[,] B; // emissionMatrix
-
 
         public double[,] fwd; // forward-vars
         public double[,] bwd; // backward-vars
 
-        public double log_epsilon = Math.Log (double.Epsilon);
+        public double log_epsilon = Math.Log (double.Epsilon); // constant
 
         public double log_prob_forward;
 
-        public int time_duration;
 
         /** Constructor
          * @ param numStates
@@ -44,21 +40,21 @@ namespace HiddenMarkovModelTrain
             A = new double[numStates, numStates];
             B = new double[numStates, numObservations];
 
-            Random rand_generator = new Random();
+           // Random rand_generator = new Random();
 
             for (int i = 0; i < numStates; i++)
             {
                 
                 for (int j = 0; j < numStates; j++)
                 {
-                  // A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
-                   A[i, j] = Math.Log((rand_generator.NextDouble()));
+                   A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
+                   // A[i, j] = Math.Log((rand_generator.NextDouble()));
                 }
 
                 for (int j = 0; j < numObservations; j++)
                 {
-                   // B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
-                   B[i, j] = Math.Log((rand_generator.NextDouble()));
+                   B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
+                   // B[i, j] = Math.Log((rand_generator.NextDouble()));
                 }
 
                  prior[i] = Math.Log(1.0 / numStates); // unifor distribution for the prior (initial state probabilities): pi  
@@ -174,9 +170,9 @@ namespace HiddenMarkovModelTrain
 
             for (int i = 0; i < numStates; i++)
             {
-                prior [i]= gamma_Calc(0, i);
-                Console.WriteLine(prior[i].ToString());
+                prior [i] = gamma_Calc(0, i);
             }
+            Console.WriteLine("---");
             
             for (int i = 0; i < numStates; i++)
             {
@@ -224,7 +220,6 @@ namespace HiddenMarkovModelTrain
 
         }
 
-
         /** Algorithm for Forward-Variable(s) Calculatiın at the state i, time t
          * @param data -> integer olarak geliyor
          * @return an array, fwd, that contains the forward-variables
@@ -233,6 +228,7 @@ namespace HiddenMarkovModelTrain
         public double[,] forwardCalc()
         {
             int time_duration = data.Length;
+            Console.WriteLine(time_duration);
 
             fwd = new double[time_duration, numStates];
 
@@ -288,7 +284,6 @@ namespace HiddenMarkovModelTrain
             int time_duration = data.Length;
 
             bwd = new double[time_duration, numStates];
-
            
             for (int t = 0; t < time_duration; t++)
             {
@@ -315,18 +310,10 @@ namespace HiddenMarkovModelTrain
                     {
                         double prob = A[i, j] + B[j, data[t + 1]] + bwd[t + 1, j];
                         bwd[t, i] = log_Sum(bwd[t,i], prob);
-
-                        
-                        /*
-                         if (bwd[t, i] == 0) // For debugging purposes
-                            Console.WriteLine("t and i: " + t + "," + i + " -> " + bwd[t,i].ToString());
-                         */
-                         
+                                                  
                     }
                 }
             }
-
-            // Console.WriteLine("b[0] is " + bwd[0, 0]);
 
             return bwd;
         }
@@ -343,11 +330,11 @@ namespace HiddenMarkovModelTrain
             }
             if (p1 > p2)
             {
-                return p1 + Math.Log(Math.Exp(p2 - p1));
+                return p1 + Math.Log(1.00 + Math.Exp(p2 - p1));
             }
             else
             {
-                return p2 + Math.Log(Math.Exp(p1 - p2));
+                return p2 + Math.Log(1.00 + Math.Exp(p1 - p2));
             }
         }
 
@@ -391,10 +378,11 @@ namespace HiddenMarkovModelTrain
 
             for (int j = 0; j < numStates; j++)
             {
-                denominator = log_Sum(denominator, (fwd[t, i] + bwd[t, i]));
+                double temp = (fwd[t, j] + bwd[t, j]);
+                denominator = log_Sum(denominator, temp);
             }
             
-            // Console.WriteLine(" gamma t and i: " + t + " and " + i + " and datalength: " + time_duration);
+            // Console.WriteLine("gamma:" + (numerator));
 
             return numerator - denominator;
         }

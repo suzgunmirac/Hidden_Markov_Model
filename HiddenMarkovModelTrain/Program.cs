@@ -16,11 +16,11 @@ namespace HiddenMarkovModelTrain
             
             logHMM [] samples = new logHMM[nSamples];
 
-            for (int i = 1; i <= 2; i++)
+            for (int i = 4; i <= 4; i++)
             {
                samples[i] = new logHMM(9, 12);
 
-                for (int j = 1; j <= 2; j++)
+                for (int j = 1; j <= 3; j++)
                 {
                     try
                     {
