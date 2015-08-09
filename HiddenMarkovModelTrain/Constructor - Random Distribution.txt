@@ -1,0 +1,42 @@
+/** Constructor
+         * @ param numStates
+         * @ param numObservations
+         **/
+        public logHMM(int numStates, int numObservations)
+        {
+            this.numStates = numStates;
+            this.numObservations = numObservations;
+
+            prior = new double[numStates];
+
+            A = new double[numStates, numStates];
+            B = new double[numStates, numObservations];
+
+           Random rand_generator = new Random();
+
+            for (int i = 0; i < numStates; i++)
+            {
+                double prob_total = 0;
+                for (int j = 0; j < (numStates -1 ); j++)
+                {
+                   //A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
+                    double temp = (rand_generator.NextDouble())/numStates;
+                    A[i, j] = Math.Log (temp);
+                    prob_total += temp;
+                }
+                A[i, numStates - 1] = Math.Log(1.00 - prob_total);
+
+                prob_total = 0;
+                for (int j = 0; (j < numObservations -1 ); j++)
+                {
+                   // B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
+                    double temp = (rand_generator.NextDouble()) / numObservations;
+                    B[i, j] = Math.Log((temp));
+                    prob_total += temp;
+                }
+                B[i, numObservations -1] = Math.Log (1.00 - prob_total);
+
+                 prior[i] = Math.Log(1.0 / numStates); // unifor distribution for the prior (initial state probabilities): pi  
+            }
+
+        }

@@ -1,0 +1,10 @@
+Digit: 1 | True: 13 | False: 42
+Digit: 2 | True: 6 | False: 49
+Digit: 3 | True: 2 | False: 53
+Digit: 4 | True: 44 | False: 11
+Digit: 5 | True: 9 | False: 46
+Digit: 6 | True: 3 | False: 52
+Digit: 7 | True: 36 | False: 19
+Digit: 8 | True: 16 | False: 39
+Digit: 9 | True: 4 | False: 51
+Digit: 10 | True: 30 | False: 25

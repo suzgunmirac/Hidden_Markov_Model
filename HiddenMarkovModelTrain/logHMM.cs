@@ -40,15 +40,14 @@ namespace HiddenMarkovModelTrain
             A = new double[numStates, numStates];
             B = new double[numStates, numObservations];
 
-           // Random rand_generator = new Random();
+           Random rand_generator = new Random();
 
             for (int i = 0; i < numStates; i++)
             {
-                
                 for (int j = 0; j < numStates; j++)
                 {
                    A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
-                   // A[i, j] = Math.Log((rand_generator.NextDouble()));
+                    //A[i, j] = Math.Log ((rand_generator.NextDouble()));
                 }
 
                 for (int j = 0; j < numObservations; j++)
@@ -59,7 +58,6 @@ namespace HiddenMarkovModelTrain
 
                  prior[i] = Math.Log(1.0 / numStates); // unifor distribution for the prior (initial state probabilities): pi  
             }
-
         }
 
 
@@ -172,14 +170,13 @@ namespace HiddenMarkovModelTrain
             {
                 prior [i] = gamma_Calc(0, i);
             }
-            Console.WriteLine("---");
             
             for (int i = 0; i < numStates; i++)
             {
                 for (int j = 0; j < numStates; j++)
                 {
-                    alpha_num [i,j] = double.NaN;
-                    alpha_denom [i,j] = double.NaN;
+                    alpha_num [i,j] = log_epsilon;
+                    alpha_denom [i,j] = log_epsilon;
 
                     for (int t = 0; t < time_duration-1; t++)
                     {
@@ -199,8 +196,8 @@ namespace HiddenMarkovModelTrain
             {
                 for (int k = 0; k < numObservations; k++)
                 {
-                    beta_num[j, k] = double.NaN;
-                    beta_denom[j, k] = double.NaN;
+                    beta_num[j, k] = log_epsilon;
+                    beta_denom[j, k] = log_epsilon;
 
                     for (int t = 0; t < time_duration; t++)
                     {
@@ -216,8 +213,6 @@ namespace HiddenMarkovModelTrain
             }
             
             #endregion
-
-
         }
 
         /** Algorithm for Forward-Variable(s) Calculatiın at the state i, time t
@@ -228,7 +223,6 @@ namespace HiddenMarkovModelTrain
         public double[,] forwardCalc()
         {
             int time_duration = data.Length;
-            Console.WriteLine(time_duration);
 
             fwd = new double[time_duration, numStates];
 
@@ -236,7 +230,7 @@ namespace HiddenMarkovModelTrain
             {
                 for (int i = 0; i < numStates; i++)
                 {
-                    fwd[t, i] = double.NaN;
+                    fwd[t, i] = log_epsilon;
                 }
             }
 
@@ -262,14 +256,14 @@ namespace HiddenMarkovModelTrain
                 }
             }
 
-           log_prob_forward = double.NaN;
+           log_prob_forward = log_epsilon;
 
             for (int i = 0; i < numStates; i++)
             {
                 log_prob_forward = log_Sum(log_prob_forward, fwd[time_duration - 1, i]);
             }
 
-            Console.WriteLine("log_prob_forward: " + log_prob_forward.ToString());
+            //Console.WriteLine("log prob forward: " + log_prob_forward);
 
             return fwd;
         }
@@ -289,7 +283,7 @@ namespace HiddenMarkovModelTrain
             {
                 for (int i = 0; i < numStates; i++)
                 {
-                    bwd[t, i] = double.NaN;
+                    bwd[t, i] = log_epsilon;
                 }
             }
             
@@ -320,11 +314,11 @@ namespace HiddenMarkovModelTrain
 
         double log_Sum (double p1, double p2)
         {
-            if (double.IsNaN(p1) || double.IsInfinity(p1))
+            if (double.IsNaN(p1) || double.IsInfinity(p1) || p1 == log_epsilon)
             {
                 return p2;
             }
-            if (double.IsNaN(p2) || double.IsInfinity(p2))
+            if (double.IsNaN(p2) || double.IsInfinity(p2) || p2 == log_epsilon)
             {
                 return p1;
             }
@@ -355,7 +349,7 @@ namespace HiddenMarkovModelTrain
         double xi_Calc(int t, int i, int j)
         {
             double numerator = fwd[t, i] + A[i, j] + B[j, data[t + 1]] + bwd [t + 1, j];
-            double denominator = double.NaN;
+            double denominator = log_epsilon;
 
             for (int k = 0; k < numStates; k++)
             {
@@ -374,7 +368,7 @@ namespace HiddenMarkovModelTrain
         {
 
             double numerator = fwd[t, i] + bwd[t, i];
-            double denominator = double.NaN;
+            double denominator = log_epsilon;
 
             for (int j = 0; j < numStates; j++)
             {
@@ -387,14 +381,14 @@ namespace HiddenMarkovModelTrain
             return numerator - denominator;
         }
 
-        double prob_Obs_Seq(int[] obs_seq)
+        public double prob_Obs_Seq(int[] obs_seq)
         {
-            data = obs_seq;
+            this.data = obs_seq;
+            time_duration = data.Length;
 
             fwd = forwardCalc();
 
             int seqLength = obs_seq.Length; // time duration actually
-
             return log_prob_forward;
         }
 
