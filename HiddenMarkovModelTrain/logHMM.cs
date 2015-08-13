@@ -44,20 +44,29 @@ namespace HiddenMarkovModelTrain
 
             for (int i = 0; i < numStates; i++)
             {
-                for (int j = 0; j < numStates; j++)
+                double prob_total = 0;
+                for (int j = 0; j < (numStates -1 ); j++)
                 {
-                   A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
-                    //A[i, j] = Math.Log ((rand_generator.NextDouble()));
+                   //A[i, j] = Math.Log(1.0 / numStates); // uniform distribution for the transition matrix : A
+                    double temp = (rand_generator.NextDouble())/numStates;
+                    A[i, j] = Math.Log (temp);
+                    prob_total += temp;
                 }
+                A[i, numStates - 1] = Math.Log(1.00 - prob_total);
 
-                for (int j = 0; j < numObservations; j++)
+                prob_total = 0;
+                for (int j = 0; (j < numObservations -1 ); j++)
                 {
-                   B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
-                   // B[i, j] = Math.Log((rand_generator.NextDouble()));
+                   // B[i, j] = Math.Log(1.0 / numObservations); // uniform distribution for the emission matrix: B
+                    double temp = (rand_generator.NextDouble()) / numObservations;
+                    B[i, j] = Math.Log((temp));
+                    prob_total += temp;
                 }
+                B[i, numObservations -1] = Math.Log (1.00 - prob_total);
 
                  prior[i] = Math.Log(1.0 / numStates); // unifor distribution for the prior (initial state probabilities): pi  
             }
+
         }
 
 

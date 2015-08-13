@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,8 @@ namespace HiddenMarkovModelTrain
         {
             int nGestures = 10;
             int nSamples = 55;
+
+            List <List <int>> digits = new List <List <int>> ();
 
             int testIndexStart = 46;
 
@@ -40,7 +43,8 @@ namespace HiddenMarkovModelTrain
                             
                             int [] digit = StringToIntArray(line);
 
-                            samples[i].baumWelchTrain(digit);
+                            for (int iteration = 0; iteration < 100; iteration++)
+                                samples[i].baumWelchTrain(digit);
 
                             /* 
                             Console.WriteLine("Digit: \n");

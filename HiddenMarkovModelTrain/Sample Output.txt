@@ -1,10 +1,34 @@
-Digit: 1 | True: 13 | False: 42
-Digit: 2 | True: 6 | False: 49
-Digit: 3 | True: 2 | False: 53
-Digit: 4 | True: 44 | False: 11
-Digit: 5 | True: 9 | False: 46
-Digit: 6 | True: 3 | False: 52
-Digit: 7 | True: 36 | False: 19
-Digit: 8 | True: 16 | False: 39
-Digit: 9 | True: 4 | False: 51
-Digit: 10 | True: 30 | False: 25
+Training Digit 1...
+----
+Training Digit 2...
+----
+Training Digit 3...
+----
+Training Digit 4...
+----
+Training Digit 5...
+----
+Training Digit 6...
+----
+Training Digit 7...
+----
+Training Digit 8...
+----
+Training Digit 9...
+----
+Training Digit 10...
+----
+Digit: 1 | True: 20 | False: 35
+Digit: 2 | True: 3 | False: 52
+Digit: 3 | True: 10 | False: 45
+Digit: 4 | True: 28 | False: 27
+Digit: 5 | True: 2 | False: 53
+Digit: 6 | True: 11 | False: 44
+Digit: 7 | True: 40 | False: 15
+Digit: 8 | True: 34 | False: 21
+Digit: 9 | True: 39 | False: 16
+Digit: 10 | True: 15 | False: 40
+------
+RESULTS:
+
+true detected: 202--> total samples: 550
